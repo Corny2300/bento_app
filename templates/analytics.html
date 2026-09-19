@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Analytics · Hobby Bento{% endblock %}
+{% block content %}
+<section>
+  <h1 class="section-title">Bento Analytics</h1>
+
+  <div class="card">
+    <div class="kpis">
+      <div class="kpi"><span>Bentos</span><strong>{{ data.count }}</strong></div>
+      <div class="kpi"><span>Snitrating</span><strong>{{ '—' if data.overall is none else ('%.1f'|format(data.overall)).replace('.', ',') }}</strong></div>
+      <div class="kpi"><span>Favoritter</span><strong>{{ data.favorite_count }}</strong></div>
+      <div class="kpi"><span>≥ 4,5 ★</span><strong>{{ '—' if data.high_pct is none else (data.high_pct|round|int|string + '%') }}</strong></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Highlights</h2>
+    <p><strong>Bedste bento:</strong>
+      {% if data.best_bento %}{{ data.best_bento.name }} · {{ bento_average(data.best_bento)|rating }}{% else %}Ikke rated endnu{% endif %}
+    </p>
+    <p><strong>Mest populære komponent:</strong>
+      {% if data.ranked_components %}{{ data.ranked_components[0].name }} · {{ data.ranked_components[0].average|rating }}{% else %}Ikke rated endnu{% endif %}
+    </p>
+    <p><strong>Mest brugte komponent:</strong>
+      {% if data.most_used_components %}{{ data.most_used_components[0].name }} · {{ data.most_used_components[0].appearances }} bentos{% else %}Ingen data endnu{% endif %}
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Top 10 komponenter</h2>
+    {% if data.ranked_components %}
+      {% for component in data.ranked_components[:10] %}
+        <div class="rank">
+          <strong>{{ loop.index }}</strong>
+          <div>
+            <strong>{{ component.name }}</strong>
+            <div class="meta">{{ component.ratings|length }} ratings · {{ component.appearances }} bentos</div>
+          </div>
+          <strong>{{ component.average|rating }}</strong>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="subtle">Når komponenter bliver rated, vises de her.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2>Udvikling</h2>
+    {% if data.trend is none %}
+      <p>Når der er mindst 10 ratede bentos, viser vi udviklingen mellem de seneste 5 og de 5 foregående.</p>
+    {% else %}
+      <p>De seneste 5 ligger <strong>{{ ('%.2f'|format(data.trend|abs)).replace('.', ',') }} ★ {{ 'højere' if data.trend >= 0 else 'lavere' }}</strong> end de 5 foregående.</p>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

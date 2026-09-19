@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Historik · Hobby Bento{% endblock %}
+{% block content %}
+<section>
+  <h1 class="section-title">Historik</h1>
+  {% if not bentos %}
+    <div class="card empty">Ingen bentos endnu 🍙</div>
+  {% else %}
+    <div class="history-grid">
+      {% for bento in bentos %}
+        <a class="card history-card" href="{{ url_for('bento_detail', bento_id=bento.id) }}">
+          {% if bento.image_path and image_url(bento.image_path) %}
+            <img class="thumb" src="{{ image_url(bento.image_path) }}" alt="">
+          {% else %}
+            <div class="thumb placeholder">🍱</div>
+          {% endif %}
+          <div class="row between">
+            <strong>{{ bento.name }}</strong>
+            <span>{{ '♥' if bento.is_favorite else '' }}</span>
+          </div>
+          <div class="meta">{{ bento.bento_date|date_da }} · {{ bento_average(bento)|rating }}</div>
+          <div class="chips">
+            {% for bc in bento.bento_components[:4] %}
+              <span class="pill">{{ bc.component.name }}</span>
+            {% endfor %}
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
+{% endblock %}

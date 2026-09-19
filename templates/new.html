@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Ny Bento · Hobby Bento{% endblock %}
+{% block content %}
+<section class="card">
+  <div class="eyebrow">{{ 'Lav igen' if is_remake else 'Ny opskrift i arkivet' }}</div>
+  <h1 class="section-title">Ny Bento</h1>
+
+  <form method="post" enctype="multipart/form-data" id="new-bento-form">
+    <div class="field">
+      <label for="name">Navn</label>
+      <input required id="name" name="name" maxlength="120" value="{{ request.form.get('name', seed_name) }}" placeholder="Teriyaki Bento">
+    </div>
+
+    <div class="field">
+      <label for="date">Dato</label>
+      <input required id="date" type="date" name="date" value="{{ request.form.get('date', today_iso) }}">
+    </div>
+
+    <div class="field">
+      <label>Komponenter</label>
+      <div id="component-list" class="component-list">
+        {% set form_components = request.form.getlist('components') if request.method == 'POST' else seed_components %}
+        {% if form_components %}
+          {% for component in form_components %}
+            <div class="component-row">
+              <input name="components" maxlength="100" value="{{ component }}" placeholder="Fx Tamagoyaki">
+              <button type="button" class="icon-btn" data-remove-component aria-label="Fjern komponent">×</button>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="component-row">
+            <input name="components" maxlength="100" placeholder="Fx Tamagoyaki">
+            <button type="button" class="icon-btn" data-remove-component aria-label="Fjern komponent">×</button>
+          </div>
+        {% endif %}
+      </div>
+      <button type="button" class="btn secondary compact" id="add-component">+ Tilføj komponent</button>
+    </div>
+
+    <div class="field">
+      <label for="comment">Note fra kokken</label>
+      <textarea id="comment" name="comment" maxlength="800" placeholder="Hvad gjorde denne bento særlig?">{{ request.form.get('comment', '') }}</textarea>
+    </div>
+
+    <div class="field">
+      <label for="image">Billede (valgfrit, max 5 MB)</label>
+      <input id="image" name="image" type="file" accept="image/jpeg,image/png,image/webp">
+      <img id="image-preview" class="preview" hidden alt="Billedpreview">
+    </div>
+
+    <button class="btn" type="submit">Opret Bento</button>
+  </form>
+</section>
+{% endblock %}

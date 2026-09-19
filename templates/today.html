@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Dagens · Hobby Bento{% endblock %}
+{% block content %}
+  {% if setup_error %}
+    <section class="card empty">
+      <h2>Supabase mangler</h2>
+      <p>{{ setup_error }}</p>
+      <p>Følg README'en og opret <code>.env</code>.</p>
+    </section>
+  {% elif not bento %}
+    <section class="card empty">
+      <h2>Ingen bentos endnu 🍙</h2>
+      <p>Opret jeres første bento for at komme i gang.</p>
+      <a class="btn" href="{{ url_for('new_bento') }}">Opret Bento</a>
+    </section>
+  {% else %}
+    {% set avg = bento_average(bento) %}
+    <section class="card">
+      <div class="row between">
+        <div>
+          <div class="eyebrow">{{ bento.bento_date|date_da }}</div>
+          <h1 class="section-title">{{ bento.name }}</h1>
+        </div>
+        <div class="rating">{{ avg|rating }}</div>
+      </div>
+
+      {% if bento.image_path %}
+        {% set public_url = image_url(bento.image_path) %}
+        {% if public_url %}<img class="hero-image" src="{{ public_url }}" alt="{{ bento.name }}">{% endif %}
+      {% endif %}
+
+      {% if bento.comment %}<p>{{ bento.comment }}</p>{% endif %}
+
+      <div class="components">
+        {% for bc in bento.bento_components %}
+          <div class="component">
+            <span>{{ bc.component.name }}</span>
+            <strong>{{ component_average(bc)|rating }}</strong>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="actions">
+        <form method="post" action="{{ url_for('toggle_favorite', bento_id=bento.id) }}">
+          <button class="btn {{ 'ghost' if bento.is_favorite else 'secondary' }}" type="submit">
+            {{ '♥ Fjern favorit' if bento.is_favorite else '♡ Favorit' }}
+          </button>
+        </form>
+        <a class="btn secondary" href="{{ url_for('new_bento', remake=bento.id) }}">Lav igen</a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="section-title">Rate bentoen</h2>
+      <form method="post" action="{{ url_for('save_rating', bento_id=bento.id) }}">
+        <div class="field">
+          <label for="rater">Dit navn</label>
+          <input id="rater" required name="rater" maxlength="60" placeholder="Fx Cornelius">
+        </div>
+
+        <div class="rating-grid">
+          <label for="overall"><strong>Samlet rating</strong></label>
+          <select required id="overall" name="overall">
+            <option value="">Vælg</option>
+            {% for value in rating_options %}
+              <option value="{{ value }}">{{ ("%.1f"|format(value)).replace('.', ',') }} ★</option>
+            {% endfor %}
+          </select>
+
+          {% for bc in bento.bento_components %}
+            <label for="component_{{ bc.id }}">{{ bc.component.name }}</label>
+            <select required id="component_{{ bc.id }}" name="component_{{ bc.id }}">
+              <option value="">Vælg</option>
+              {% for value in rating_options %}
+                <option value="{{ value }}">{{ ("%.1f"|format(value)).replace('.', ',') }} ★</option>
+              {% endfor %}
+            </select>
+          {% endfor %}
+        </div>
+
+        <div class="field form-gap">
+          <label for="comment">Kommentar (valgfri)</label>
+          <textarea id="comment" name="comment" maxlength="500" placeholder="Mere tamagoyaki næste gang…"></textarea>
+        </div>
+        <button class="btn" type="submit">Gem rating</button>
+      </form>
+    </section>
+
+    {% if bento.bento_ratings %}
+      <section class="card">
+        <h2 class="section-title">Kommentarer</h2>
+        <div class="comments">
+          {% set ns = namespace(any=false) %}
+          {% for item in bento.bento_ratings %}
+            {% if item.comment %}
+              {% set ns.any = true %}
+              <div class="comment">
+                <strong>{{ item.rater_name }}</strong> · {{ item.rating|rating }}
+                <div>{{ item.comment }}</div>
+              </div>
+            {% endif %}
+          {% endfor %}
+          {% if not ns.any %}<span class="subtle">Ingen kommentarer endnu.</span>{% endif %}
+        </div>
+      </section>
+    {% endif %}
+  {% endif %}
+{% endblock %}
